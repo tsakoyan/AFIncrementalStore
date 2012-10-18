@@ -444,13 +444,15 @@ static NSDate * AFLastModifiedDateFromHTTPHeaders(NSDictionary *headers) {
             
             [mutableOperations addObject:operation];
         } else {
-            NSManagedObjectID *objectID = nil; //TODO: TBD
-            [backingContext performBlockAndWait:^{
-                NSManagedObject *backingObject = (objectID != nil) ? [backingContext existingObjectWithID:objectID error:nil] : [NSEntityDescription insertNewObjectForEntityForName:insertedObject.entity.name inManagedObjectContext:backingContext];
-                //[backingObject setValue:resourceIdentifier forKey:kAFIncrementalStoreResourceIdentifierAttributeName];
-                [backingObject setValuesForKeysWithDictionary:[insertedObject dictionaryWithValuesForKeys:nil]];
-                [backingContext save:nil];
-            }];
+            NSManagedObjectID *objectID = [[self backingObjectForManagedObject:insertedObject] objectID]; //TODO: TBD
+            if (objectID == nil) {
+                [backingContext performBlockAndWait:^{
+                    NSManagedObject *backingObject = (objectID != nil) ? [backingContext existingObjectWithID:objectID error:nil] : [NSEntityDescription insertNewObjectForEntityForName:insertedObject.entity.name inManagedObjectContext:backingContext];
+                    //[backingObject setValue:resourceIdentifier forKey:kAFIncrementalStoreResourceIdentifierAttributeName];
+                    [backingObject setValuesForKeysWithDictionary:[insertedObject dictionaryWithValuesForKeys:nil]];
+                    [backingContext save:nil];
+                }];
+            }
         }
     }
     
